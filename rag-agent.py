@@ -98,4 +98,3 @@ ragproxyagent.initiate_chat(assistant, problem=problem)
 answer = assistant.last_message(ragproxyagent)['content']
 
 print(answer)
-
