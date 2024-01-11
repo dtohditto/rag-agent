@@ -7,9 +7,10 @@ import chromadb
 import os
 import autogen
 
-config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST.json")
+CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
+config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
 cheap_config_list = autogen.config_list_from_json(
-    env_or_file="OAI_CONFIG_LIST.json",  
+    env_or_file=CONFIG_FILE_NAME,  
     filter_dict={
         "model": {
             "gpt-3.5-turbo",
@@ -18,7 +19,7 @@ cheap_config_list = autogen.config_list_from_json(
 )
 
 costly_config_list = autogen.config_list_from_json(
-    env_or_file="OAI_CONFIG_LIST.json", 
+    env_or_file=CONFIG_FILE_NAME, 
     filter_dict={
         "model": {
             "gpt-4-1106-preview",
@@ -57,7 +58,7 @@ CODE_EXECUTION_CONFIG={
 
 assistant = RetrieveAssistantAgent(
     name="assistant",
-    system_message="You are a helpful and cheerful assistant. Your job is to answer queries about the Maritime Census by the Maritime Port Authority of Singapore.",
+    system_message="You are a helpful and cheerful assistant. Your job is to answer queries about the Maritime Census.",
     llm_config=LLM_CONFIG,
 )
 
