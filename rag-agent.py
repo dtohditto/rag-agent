@@ -56,46 +56,62 @@ CODE_EXECUTION_CONFIG={
         "use_docker": False
     }
 
-assistant = RetrieveAssistantAgent(
-    name="assistant",
-    system_message="You are a helpful and cheerful assistant. Your job is to answer queries about the Maritime Census.",
-    llm_config=LLM_CONFIG,
-)
+test_questions = ["May I get a time extension please?",
+                  "Can you give me more information about Section H of the Maritime Census?",
+                  "Can I update my contact details?",
+                  "Why does MPA conduct the Maritime Census?",
+                  "Is my company's information kept confidential?"]
 
-ragproxyagent = RetrieveUserProxyAgent(
-    name="ragproxyagent",
-    human_input_mode="NEVER",
-    max_consecutive_auto_reply=0,
-    retrieve_config=RETRIEVE_CONFIG,
-    code_execution_config=False, # set to False if you don't want to execute the code
-)
+def testQuestion(question):
+    assistant = RetrieveAssistantAgent(
+        name="assistant",
+        system_message="You are a helpful and cheerful assistant. Your job is to answer queries about the Maritime Census.",
+        llm_config=LLM_CONFIG,
+    )
 
-critic = autogen.AssistantAgent(
-    name="critic",
-    system_message=''' You are a helpful assistant.
-    ''',
-    llm_config=LLM_CONFIG,
-)
+    ragproxyagent = RetrieveUserProxyAgent(
+        name="ragproxyagent",
+        human_input_mode="NEVER",
+        max_consecutive_auto_reply=0,
+        retrieve_config=RETRIEVE_CONFIG,
+        code_execution_config=False, # set to False if you don't want to execute the code
+    )
 
-content = 'Can I check if my request for an extention has been granted?'
-message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
-\n
-Question: '{content}'
-"""
+    critic = autogen.AssistantAgent(
+        name="critic",
+        system_message=''' You are a helpful assistant.
+        ''',
+        llm_config=LLM_CONFIG,
+    )
 
-ragproxyagent.initiate_chat(critic, problem=message)
+    content = question
+    message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
+    \n
+    Question: '{content}'
+    """
 
-expanded_message = ragproxyagent.last_message(critic)['content']
-print(expanded_message)
+    ragproxyagent.initiate_chat(critic, problem=message)
 
-problem = f"""Always answer all questions. Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+    expanded_message = ragproxyagent.last_message(critic)['content']
+    print(expanded_message)
 
-Question: '{expanded_message}'
-"""
+    problem = f"""Always answer all questions. Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
 
-assistant.reset() # it says always to reset, but havent read thru to find out more
+    Question: '{expanded_message}'
+    """
 
-ragproxyagent.initiate_chat(assistant, problem=problem)
-answer = assistant.last_message(ragproxyagent)['content']
+    assistant.reset() # it says always to reset, but havent read thru to find out more
 
-print(answer)
+    ragproxyagent.initiate_chat(assistant, problem=problem)
+    answer = assistant.last_message(ragproxyagent)['content']
+
+    print(answer)
+
+testQuestion(test_questions[0])
+
+#testing all questions in list of test questions
+# "May I get a time extension please?",
+# "Can you give me more information about Section H of the Maritime Census?",
+# "Can I update my contact details?",
+# "Why does MPA conduct the Maritime Census?",
+# "Is my company's information kept confidential?"
