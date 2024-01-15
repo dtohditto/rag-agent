@@ -6,6 +6,10 @@ from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProx
 import chromadb
 import os
 import autogen
+import time
+import speech_recognition as sr
+import pyttsx3
+
 
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
@@ -56,13 +60,25 @@ CODE_EXECUTION_CONFIG={
         "use_docker": False
     }
 
+Recog = sr.Recognizer()
+
+def SpeakText(text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
+ERROR_MSG = "Sorry, I am unable to answer your question given the current context. Would you mind providing more context on your query?"
+FINAL_ERROR_MSG = "Sorry, I am unable to find an appropriate answer to your query. Please rephrase your query or ask another question. Thank you!"
+
 test_questions = ["May I get a time extension please?",
                   "Can you give me more information about Section H of the Maritime Census?",
                   "Can I update my contact details?",
                   "Why does MPA conduct the Maritime Census?",
                   "Is my company's information kept confidential?"]
 
-def testQuestion(question):
+def start_chat():
+    start_time = time.perf_counter()
+
     assistant = RetrieveAssistantAgent(
         name="assistant",
         system_message="You are a helpful and cheerful assistant. Your job is to answer queries about the Maritime Census.",
@@ -84,34 +100,61 @@ def testQuestion(question):
         llm_config=LLM_CONFIG,
     )
 
-    content = question
-    message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
-    \n
-    Question: '{content}'
-    """
+    #Reset all agents
+    assistant.reset()
+    ragproxyagent.reset()
+    critic.reset()
 
-    ragproxyagent.initiate_chat(critic, problem=message)
+    time_inactive = 0
+    # Runs chat with user until user is inactive for 5 minutes
+    # Might need to do threading
+    while (time_inactive < 300):
+        question = input("Welcome to the Maritime Innovation Center! How may I assist you today?")
+        message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
+        \n
+        Question: '{question}'
+        """
 
-    expanded_message = ragproxyagent.last_message(critic)['content']
-    print(expanded_message)
+        ragproxyagent.initiate_chat(critic, problem=message)
 
-    problem = f"""Always answer all questions. Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+        expanded_message = ragproxyagent.last_message(critic)['content']
+        print(expanded_message)
 
-    Question: '{expanded_message}'
-    """
+        problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+        If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
 
-    assistant.reset() # it says always to reset, but havent read thru to find out more
+        Question: "{expanded_message}"
+        """
 
-    ragproxyagent.initiate_chat(assistant, problem=problem)
-    answer = assistant.last_message(ragproxyagent)['content']
+        ragproxyagent.initiate_chat(assistant, problem=problem)
+        answer = assistant.last_message(ragproxyagent)['content']
+        if (answer == ERROR_MSG):
+            new_question = input(ERROR_MSG)
+            new_message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
+            \n
+            Question: '{new_question}'
+            """
 
-    print(answer)
+            ragproxyagent.initiate_chat(critic, problem=new_message)
 
-testQuestion(test_questions[0])
+            expanded_message = ragproxyagent.last_message(critic)['content']
+            print(expanded_message)
 
-#testing all questions in list of test questions
-# "May I get a time extension please?",
-# "Can you give me more information about Section H of the Maritime Census?",
-# "Can I update my contact details?",
-# "Why does MPA conduct the Maritime Census?",
-# "Is my company's information kept confidential?"
+            problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+            If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
+
+            Question: "{expanded_message}"
+            """
+
+            ragproxyagent.initiate_chat(assistant, problem=problem)
+            final_answer = assistant.last_message(ragproxyagent)['content']
+            if (final_answer == ERROR_MSG):
+                print(FINAL_ERROR_MSG)
+                time_inactive = 500
+        else:
+            print(answer)
+
+def main():
+    start_chat()
+
+main()
