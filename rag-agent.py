@@ -10,7 +10,6 @@ import time
 import speech_recognition as sr
 import pyttsx3
 
-
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
 cheap_config_list = autogen.config_list_from_json(
@@ -62,11 +61,8 @@ CODE_EXECUTION_CONFIG={
 
 Recog = sr.Recognizer()
 
-def SpeakText(text):
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
 
+WELCOME_MSG = "Welcome to the Maritime Innovation Center! How may I assist you today?"
 ERROR_MSG = "Sorry, I am unable to answer your question given the current context. Would you mind providing more context on your query?"
 FINAL_ERROR_MSG = "Sorry, I am unable to find an appropriate answer to your query. Please rephrase your query or ask another question. Thank you!"
 
@@ -109,10 +105,11 @@ def start_chat():
     # Runs chat with user until user is inactive for 5 minutes
     # Might need to do threading
     while (time_inactive < 300):
-        question = input("Welcome to the Maritime Innovation Center! How may I assist you today?")
+        user_question = askfor_userVoiceInput(WELCOME_MSG)
+
         message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
         \n
-        Question: '{question}'
+        Question: '{user_question}'
         """
 
         ragproxyagent.initiate_chat(critic, problem=message)
@@ -128,31 +125,68 @@ def start_chat():
 
         ragproxyagent.initiate_chat(assistant, problem=problem)
         answer = assistant.last_message(ragproxyagent)['content']
-        if (answer == ERROR_MSG):
-            new_question = input(ERROR_MSG)
-            new_message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
-            \n
-            Question: '{new_question}'
-            """
+        SpeakText(answer)
+        # if (answer == ERROR_MSG):
+        #     new_question = askfor_userVoiceInput(ERROR_MSG)
+        #     new_message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
+        #     \n
+        #     Question: '{new_question}'
+        #     """
 
-            ragproxyagent.initiate_chat(critic, problem=new_message)
+        #     ragproxyagent.initiate_chat(critic, problem=new_message)
 
-            expanded_message = ragproxyagent.last_message(critic)['content']
-            print(expanded_message)
+        #     expanded_message = ragproxyagent.last_message(critic)['content']
+        #     print(expanded_message)
 
-            problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
-            If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
+        #     problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+        #     If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
 
-            Question: "{expanded_message}"
-            """
+        #     Question: "{expanded_message}"
+        #     """
 
-            ragproxyagent.initiate_chat(assistant, problem=problem)
-            final_answer = assistant.last_message(ragproxyagent)['content']
-            if (final_answer == ERROR_MSG):
-                print(FINAL_ERROR_MSG)
-                time_inactive = 500
-        else:
-            print(answer)
+        #     ragproxyagent.initiate_chat(assistant, problem=problem)
+        #     final_answer = assistant.last_message(ragproxyagent)['content']
+        #     if (final_answer == ERROR_MSG):
+        #         SpeakText(FINAL_ERROR_MSG)
+        #         time_inactive = 500
+        # else:
+        #     print(answer)
+        #     SpeakText(answer)
+
+def SpeakText(text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
+def askfor_userVoiceInput(question):
+    SpeakText(question)
+    print("Start speaking!")
+    try:
+        # Use Microphone as source for input
+        with sr.Microphone() as source:
+
+            # Wait for a second to let the recognier adjust the energy threhold based on the surrounding noise level
+            Recog.adjust_for_ambient_noise(source, duration=0.5)
+            
+            try:
+                audio = recognizer.listen(source, timeout=timeout)
+            except sr.WaitTimeoutError:
+                print("Timeout while waiting for user voice input")
+            print(audio)
+                
+            # Use google to recognize audio
+            userVoiceInput = Recog.recognize_google(audio)
+            userVoiceInput = userVoiceInput.lower()
+        
+    except sr.RequestError as e:
+        print("Could not request results; {0}".format(e))
+
+    except sr.UnknownValueError:
+        print("Unknown error occurred")
+        
+    else:
+        print(userVoiceInput)
+        return userVoiceInput
 
 def main():
     start_chat()
