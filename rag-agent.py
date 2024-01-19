@@ -9,6 +9,13 @@ import autogen
 import time
 import speech_recognition as sr
 import pyttsx3
+import tkinter as tk
+from pydub import AudioSegment
+from pydub.playback import play
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+root = tk.Tk()
+root.title("rag-agent")
 
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
@@ -79,7 +86,7 @@ def start_chat():
 
     assistant = RetrieveAssistantAgent(
         name="assistant",
-        system_message="You are a helpful and cheerful assistant. Your job is to answer queries about the Maritime Census.",
+        system_message="You are a helpful and cheerful human assistant. Your job is to answer queries about the Maritime Census.",
         llm_config=LLM_CONFIG,
     )
 
@@ -156,7 +163,7 @@ def start_chat():
         return answer
 
 def SpeakText(text):
-    engine = pyttsx3.init()
+    engine = pyttsx3.init()#nsss on Mac, sapi5 on windows, espeak on every other platform
     engine.say(text)
     engine.runAndWait()
 
@@ -192,6 +199,46 @@ def askfor_userVoiceInput(question):
 
     return "user_timeout"
 
+def analyse_audio(audio):
+    # Analyse audio to get volume level
+    rms = audio.rms
+
+    # Adjust brightness based on volume level
+    brightness = int(rms/100)
+
+    # Execute flashing effect based on brightness
+    flash_icon(brightness)
+
+def flash_icon(label, brightness):
+    # Implement your flashing effect here using brightness
+    # For simplicity, changing background color based on brightness
+
+    # Adjust the factor for brightness mapping as needed
+    color_intensity = int(brightness * 2.55)  # Map brightness [0, 100] to [0, 255]
+
+    # Convert color intensity to hexadecimal format
+    color_hex = "#{:02X}{:02X}{:02X}".format(color_intensity, color_intensity, color_intensity)
+
+    label.config(bg=color_hex)
+    label.update()
+    time.sleep(0.5)  # Adjust the duration of the flash as needed
+    label.config(bg="white")  # Reset the background color
+
+# root = tk.Tk()
+# root.title("Voice Assistant")
+
+# # Set up your main window, buttons, etc.
+
+# # Create a label for the flashing effect
+# flashing_label = tk.Label(root, text="Icon", width=10, height=5, relief="solid")
+# flashing_label.pack(pady=20)
+
+# # Example usage of flash_icon
+# flash_icon(flashing_label, 50)  # Adjust brightness value as needed
+
+# root.mainloop()
+
+
 def main():
     timeout = False
     while (timeout == False):
@@ -201,5 +248,4 @@ def main():
             print("user timed out")
             timeout = True
         
-
 main()
