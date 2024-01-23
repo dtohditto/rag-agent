@@ -170,7 +170,7 @@ def SpeakText(text):
     engine.save_to_file(text, 'test.wav')
     engine.say(text)
     engine.runAndWait()
-    audio_segment = AudioSegment.from_wav('test.wav')
+    audio_segment = AudioSegment.from_file('test.wav')
     analyse_audio_and_flash(flashing_label, audio_segment)
 
 def askfor_userVoiceInput(question):
@@ -210,7 +210,7 @@ def analyse_audio_and_flash(label, audio):
     rms = audio.rms
 
     # Adjust brightness based on volume level
-    brightness = int(rms/100)
+    brightness = int(rms/1000)
 
     # Execute flashing effect based on brightness
     flash_icon(label, brightness)
