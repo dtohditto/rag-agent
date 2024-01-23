@@ -51,7 +51,7 @@ RETRIEVE_CONFIG={
         "client": chromadb.PersistentClient(path="/tmp/chromadb"),
         "embedding_model": "all-mpnet-base-v2",
         "get_or_create": True,  # set to False if you don't want to reuse an existing collection, but you'll need to remove the collection manually
-        "must_break_at_empty_line": False
+        "must_break_at_empty_line": True
     }
 
 CODE_EXECUTION_CONFIG={
@@ -78,7 +78,7 @@ test_questions = ["May I get a time extension please?",
 
 def start_chat():
     with open("chat_log.txt", "a") as file:
-        file.write(f'''<u><b>New Chat</b></u>\n''')
+        file.write("\n\nNew Chat\n")
     start_time = time.perf_counter()
 
     assistant = RetrieveAssistantAgent(
@@ -118,7 +118,7 @@ def start_chat():
     Question: '{user_question}'
     """
 
-    ragproxyagent.initiate_chat(critic, problem=message)
+    ragproxyagent.initiate_chat(critic, problem=message, silent=True)
 
     expanded_message = ragproxyagent.last_message(critic)['content']
     with open("chat_log.txt", "a") as file:
@@ -131,7 +131,7 @@ def start_chat():
     Question: "{expanded_message}"
     """
 
-    ragproxyagent.initiate_chat(assistant, problem=problem)
+    ragproxyagent.initiate_chat(assistant, problem=problem, silent=True)
     answer = assistant.last_message(ragproxyagent)['content']
     if (answer == ERROR_MSG):
         with open("chat_log.txt", "a") as file:
@@ -144,7 +144,7 @@ def start_chat():
         Question: '{new_question}'
         """
 
-        ragproxyagent.initiate_chat(critic, problem=new_message)
+        ragproxyagent.initiate_chat(critic, problem=new_message, silent=True)
 
         expanded_message = ragproxyagent.last_message(critic)['content']
 
@@ -154,7 +154,7 @@ def start_chat():
         Question: "{expanded_message}"
         """
 
-        ragproxyagent.initiate_chat(assistant, problem=problem)
+        ragproxyagent.initiate_chat(assistant, problem=problem, silent=True)
         final_answer = assistant.last_message(ragproxyagent)['content']
         if (final_answer == ERROR_MSG):
             SpeakText(FINAL_ERROR_MSG)
