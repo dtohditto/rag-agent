@@ -9,6 +9,7 @@ import autogen
 import time
 import speech_recognition as sr
 import pyttsx3
+import threading
 import tkinter as tk
 from pydub import AudioSegment
 from pydub.playback import play
@@ -16,6 +17,8 @@ from pydub.playback import play
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 root = tk.Tk()
 root.title("rag-agent")
+flashing_label = tk.Label(root, text="Icon", width=10, height=5, relief="solid")
+flashing_label.pack(pady=20)
 
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
@@ -164,8 +167,11 @@ def start_chat():
 
 def SpeakText(text):
     engine = pyttsx3.init()#nsss on Mac, sapi5 on windows, espeak on every other platform
+    engine.save_to_file(text, 'test.wav')
     engine.say(text)
     engine.runAndWait()
+    audio_segment = AudioSegment.from_wav('test.wav')
+    analyse_audio_and_flash(flashing_label, audio_segment)
 
 def askfor_userVoiceInput(question):
     SpeakText(question)
@@ -199,7 +205,7 @@ def askfor_userVoiceInput(question):
 
     return "user_timeout"
 
-def analyse_audio(audio):
+def analyse_audio_and_flash(label, audio):
     # Analyse audio to get volume level
     rms = audio.rms
 
@@ -207,7 +213,7 @@ def analyse_audio(audio):
     brightness = int(rms/100)
 
     # Execute flashing effect based on brightness
-    flash_icon(brightness)
+    flash_icon(label, brightness)
 
 def flash_icon(label, brightness):
     # Implement your flashing effect here using brightness
@@ -224,28 +230,22 @@ def flash_icon(label, brightness):
     time.sleep(0.5)  # Adjust the duration of the flash as needed
     label.config(bg="white")  # Reset the background color
 
-# root = tk.Tk()
-# root.title("Voice Assistant")
-
-# # Set up your main window, buttons, etc.
-
-# # Create a label for the flashing effect
-# flashing_label = tk.Label(root, text="Icon", width=10, height=5, relief="solid")
-# flashing_label.pack(pady=20)
-
-# # Example usage of flash_icon
-# flash_icon(flashing_label, 50)  # Adjust brightness value as needed
-
-# root.mainloop()
-
-
-def main():
+def background_process():
     timeout = False
     while (timeout == False):
-        start_chat()
-        if (start_chat() == "user_timeout"):
-            SpeakText(GOODBYE_MSG)
-            print("user timed out")
-            timeout = True
+            start_chat()
+            if (start_chat() == "user_timeout"):
+                SpeakText(GOODBYE_MSG)
+                print("user timed out")
+                timeout = True
+
+def start_background_thread():
+    background_thread = threading.Thread(target=background_process)
+    background_thread.start()
+
+def main():
+    start_background_thread()
+    root.mainloop()
+    
         
 main()
