@@ -9,16 +9,8 @@ import autogen
 import time
 import speech_recognition as sr
 import pyttsx3
-import threading
-import tkinter as tk
-from pydub import AudioSegment
-from pydub.playback import play
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-root = tk.Tk()
-root.title("rag-agent")
-flashing_label = tk.Label(root, text="Icon", width=10, height=5, relief="solid")
-flashing_label.pack(pady=20)
 
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
@@ -85,6 +77,8 @@ test_questions = ["May I get a time extension please?",
                   "Is my company's information kept confidential?"]
 
 def start_chat():
+    with open("chat_log.txt", "a") as file:
+        file.write(f'''<u><b>New Chat</b></u>\n''')
     start_time = time.perf_counter()
 
     assistant = RetrieveAssistantAgent(
@@ -115,6 +109,7 @@ def start_chat():
     
     # Runs chat with user
     user_question = askfor_userVoiceInput(WELCOME_MSG)
+    user_start_time = time.perf_counter()
     if (user_question == "user_timeout"):
         return user_question
 
@@ -126,9 +121,11 @@ def start_chat():
     ragproxyagent.initiate_chat(critic, problem=message)
 
     expanded_message = ragproxyagent.last_message(critic)['content']
-    print(expanded_message)
+    with open("chat_log.txt", "a") as file:
+        file.write("Expanded message: " + expanded_message + "\n")
 
-    problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+    problem = f"""
+    Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
     If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
 
     Question: "{expanded_message}"
@@ -137,6 +134,8 @@ def start_chat():
     ragproxyagent.initiate_chat(assistant, problem=problem)
     answer = assistant.last_message(ragproxyagent)['content']
     if (answer == ERROR_MSG):
+        with open("chat_log.txt", "a") as file:
+            file.write("ERROR_MSG")
         new_question = askfor_userVoiceInput(ERROR_MSG)
         if (new_question == "user_timeout"):
             return new_question
@@ -148,7 +147,6 @@ def start_chat():
         ragproxyagent.initiate_chat(critic, problem=new_message)
 
         expanded_message = ragproxyagent.last_message(critic)['content']
-        print(expanded_message)
 
         problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
         If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
@@ -160,18 +158,25 @@ def start_chat():
         final_answer = assistant.last_message(ragproxyagent)['content']
         if (final_answer == ERROR_MSG):
             SpeakText(FINAL_ERROR_MSG)
+            with open("chat_log.txt", "a") as file:
+                file.write("FINAL_ERROR_MSG")
             return FINAL_ERROR_MSG
+        else:
+            SpeakText(final_answer)
+            return final_answer
     else:
+        response_time = str(time.perf_counter()-user_start_time)
+        #Current response time 23 secs without agent reset
+        print("Response time: " + response_time)
         SpeakText(answer)
+        with open("chat_log.txt", "a") as file:
+            file.write("Final Answer: " + answer + "\n")
         return answer
 
 def SpeakText(text):
     engine = pyttsx3.init()#nsss on Mac, sapi5 on windows, espeak on every other platform
-    engine.save_to_file(text, 'test.wav')
     engine.say(text)
     engine.runAndWait()
-    audio_segment = AudioSegment.from_file('test.wav')
-    analyse_audio_and_flash(flashing_label, audio_segment)
 
 def askfor_userVoiceInput(question):
     SpeakText(question)
@@ -205,32 +210,7 @@ def askfor_userVoiceInput(question):
 
     return "user_timeout"
 
-def analyse_audio_and_flash(label, audio):
-    # Analyse audio to get volume level
-    rms = audio.rms
-
-    # Adjust brightness based on volume level
-    brightness = int(rms/1000)
-
-    # Execute flashing effect based on brightness
-    flash_icon(label, brightness)
-
-def flash_icon(label, brightness):
-    # Implement your flashing effect here using brightness
-    # For simplicity, changing background color based on brightness
-
-    # Adjust the factor for brightness mapping as needed
-    color_intensity = int(brightness * 2.55)  # Map brightness [0, 100] to [0, 255]
-
-    # Convert color intensity to hexadecimal format
-    color_hex = "#{:02X}{:02X}{:02X}".format(color_intensity, color_intensity, color_intensity)
-
-    label.config(bg=color_hex)
-    label.update()
-    time.sleep(0.5)  # Adjust the duration of the flash as needed
-    label.config(bg="white")  # Reset the background color
-
-def background_process():
+def main():
     timeout = False
     while (timeout == False):
             start_chat()
@@ -238,14 +218,6 @@ def background_process():
                 SpeakText(GOODBYE_MSG)
                 print("user timed out")
                 timeout = True
-
-def start_background_thread():
-    background_thread = threading.Thread(target=background_process)
-    background_thread.start()
-
-def main():
-    start_background_thread()
-    root.mainloop()
     
         
 main()
