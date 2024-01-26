@@ -213,8 +213,8 @@ def askfor_userVoiceInput(question):
 def main():
     timeout = False
     while (timeout == False):
-            start_chat()
-            if (start_chat() == "user_timeout"):
+            output = start_chat()
+            if (output == "user_timeout"):
                 SpeakText(GOODBYE_MSG)
                 print("user timed out")
                 timeout = True
