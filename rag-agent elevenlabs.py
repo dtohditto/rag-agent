@@ -8,8 +8,7 @@ import os
 import autogen
 import time
 import speech_recognition as sr
-import pyttsx3
-from elevenlabs import requests, generate, play, set_api_key
+from elevenlabs import requests, generate, play, set_api_key, Voice, VoiceSettings, stream
 
 set_api_key("f66cfce05bae0a44662247039e4910ce")
 
@@ -176,10 +175,15 @@ def start_chat():
             file.write("Final Answer: " + answer + "\n")
         return answer
 
-def SpeakText(text):
-    engine = pyttsx3.init()#nsss on Mac, sapi5 on windows, espeak on every other platform
-    engine.say(text)
-    engine.runAndWait()
+def SpeakText(inputText):
+    audio_stream = generate(
+        text=inputText,
+        voice="Serena",
+        model="eleven_turbo_v2",
+        stream=True
+    )
+
+    stream(audio_stream)
 
 def askfor_userVoiceInput(question):
     SpeakText(question)
@@ -193,7 +197,7 @@ def askfor_userVoiceInput(question):
             with sr.Microphone() as source:
 
                 # Wait for a second to let the recognier adjust the energy threhold based on the surrounding noise level
-                Recog.adjust_for_ambient_noise(source, duration=0.5)
+                Recog.adjust_for_ambient_noise(source, duration=0.2)
                 
                 # Listen for user voice input
                 audio = Recog.listen(source, timeout=30)
@@ -224,30 +228,3 @@ def main():
     
         
 main()
-
-
-CHUNK_SIZE = 1024
-url = "https://api.elevenlabs.io/v1/text-to-speech/<voice-id>"
-
-headers = {
-  "Accept": "audio/mpeg",
-  "Content-Type": "application/json",
-  "xi-api-key": "f66cfce05bae0a44662247039e4910ce"
-}
-
-data = {
-  "text": "Born and raised in the charming south, 
-  I can add a touch of sweet southern hospitality 
-  to your audiobooks and podcasts",
-  "model_id": "eleven_monolingual_v1",
-  "voice_settings": {
-    "stability": 0.5,
-    "similarity_boost": 0.5
-  }
-}
-
-response = requests.post(url, json=data, headers=headers)
-with open('output.mp3', 'wb') as f:
-    for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-        if chunk:
-            f.write(chunk)
