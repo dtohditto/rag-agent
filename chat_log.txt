@@ -31,3 +31,23 @@ Final Answer: Your company's information will be kept confidential as per the St
 
 
 New Chat
+
+
+New Chat
+Expanded message: What is the purpose of the maritime sensors, and how do they contribute to the safety and security systems in the maritime industry?
+Final Answer: Maritime sensors are used to monitor environmental conditions, detect hazards, and facilitate navigation, thereby enhancing safety and security in the maritime industry.
+
+
+New Chat
+
+
+New Chat
+Expanded message: Question: 'where are my company's information be kept secret and how can I ensure confidentiality?'
+Final Answer: The information submitted for the Maritime Census is kept confidential and is handled in accordance with the Statistics Act. All officers handling the survey information are required to sign undertakings to ensure confidentiality. The data is securely stored in MPA's systems.
+
+
+New Chat
+Expanded message: Question: 'submission' What are the top 5 most relevant supplementary questions?
+ERROR_MSG
+
+New Chat

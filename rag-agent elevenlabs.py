@@ -37,7 +37,7 @@ costly_config_list = autogen.config_list_from_json(
 LLM_CONFIG = {
     "cache_seed": 42,  # change the cache_seed for different trials
     "temperature": 0,
-    "config_list": costly_config_list, # Can be amended to either cheap_config_list or costly_config_list
+    "config_list": cheap_config_list, # Can be amended to either cheap_config_list or costly_config_list
     "timeout": 120, # Default was 120
     # "tools": tools_list, # TESTING: function calling and automated admin 
 }
@@ -124,6 +124,7 @@ def start_chat():
 
     expanded_message = ragproxyagent.last_message(critic)['content']
     with open("chat_log.txt", "a") as file:
+        file.write("User question: " + user_question + "\n")
         file.write("Expanded message: " + expanded_message + "\n")
 
     problem = f"""
@@ -168,11 +169,11 @@ def start_chat():
             return final_answer
     else:
         response_time = str(time.perf_counter()-user_start_time)
-        #Current response time 23 secs without agent reset
         print("Response time: " + response_time)
         SpeakText(answer)
         with open("chat_log.txt", "a") as file:
             file.write("Final Answer: " + answer + "\n")
+            file.write("Response Time: " + response_time + "s\n")
         return answer
 
 def SpeakText(inputText):
@@ -202,7 +203,6 @@ def askfor_userVoiceInput(question):
                 # Listen for user voice input
                 audio = Recog.listen(source, timeout=30)
                     
-                    
                 # Use google to recognize audio
                 userVoiceInput = Recog.recognize_google(audio)
                 userVoiceInput = userVoiceInput.lower()
@@ -212,7 +212,7 @@ def askfor_userVoiceInput(question):
             print("Could not request results; {0}".format(e))
 
         except sr.UnknownValueError:
-            print("User is not speaking")
+            print("User is not speaking: " + (time.perf_counter() - start_userVoiceTime))
             continue
 
     return "user_timeout"

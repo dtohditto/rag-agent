@@ -38,7 +38,7 @@ costly_config_list = autogen.config_list_from_json(
 LLM_CONFIG = {
     "cache_seed": 42,  # change the cache_seed for different trials
     "temperature": 0,
-    "config_list": costly_config_list, # Can be amended to either cheap_config_list or costly_config_list
+    "config_list": cheap_config_list, # Can be amended to either cheap_config_list or costly_config_list
     "timeout": 120, # Default was 120
     # "tools": tools_list, # TESTING: function calling and automated admin 
 }
