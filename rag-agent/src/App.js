@@ -1,3 +1,29 @@
+import logo from './logo.svg';
+import './App.css';
+
+function App() {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
+    </div>
+  );
+}
+
+export default App;
+
 // Enter your token server url to connect to your project
 // NOTE: your token server must allow requests from 'https://web-platform-9chn6x.stackblitz.io'
 //const tokenServer = 'http://localhost:5001/auth/authorize';
@@ -75,3 +101,4 @@ connectButton.addEventListener('click', () => connect());
 
 const resetButton = document.getElementById('reset-button');
 resetButton.addEventListener('click', () => (window.location = '/'));
+
