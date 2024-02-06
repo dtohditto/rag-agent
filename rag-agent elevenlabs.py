@@ -8,9 +8,9 @@ import os
 import autogen
 import time
 import speech_recognition as sr
-from elevenlabs import requests, generate, play, set_api_key, Voice, VoiceSettings, stream
+from elevenlabs import generate, set_api_key, stream
 
-set_api_key("f66cfce05bae0a44662247039e4910ce")
+set_api_key("9ea1ee7db09a5fe4db9eabadedcbae24")
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
