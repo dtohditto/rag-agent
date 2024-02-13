@@ -37,7 +37,7 @@ costly_config_list = autogen.config_list_from_json(
 LLM_CONFIG = {
     "cache_seed": 42,  # change the cache_seed for different trials
     "temperature": 0,
-    "config_list": cheap_config_list, # Can be amended to either cheap_config_list or costly_config_list
+    "config_list": costly_config_list, # Can be amended to either cheap_config_list or costly_config_list
     "timeout": 120, # Default was 120
     # "tools": tools_list, # TESTING: function calling and automated admin 
 }
@@ -53,7 +53,7 @@ RETRIEVE_CONFIG={
         "client": chromadb.PersistentClient(path="/tmp/chromadb"),
         "embedding_model": "all-mpnet-base-v2",
         "get_or_create": True,  # set to False if you don't want to reuse an existing collection, but you'll need to remove the collection manually
-        "must_break_at_empty_line": True
+        "must_break_at_empty_line": False
     }
 
 CODE_EXECUTION_CONFIG={
@@ -115,7 +115,7 @@ def start_chat():
     if (user_question == "user_timeout"):
         return user_question
 
-    message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
+    message = f"""expand the following question to add more relevant questions. think of the most relevant supplementary question and combine it with the original question. Only return the combined question as a singular question.
     \n
     Question: '{user_question}'
     """
@@ -128,7 +128,7 @@ def start_chat():
         file.write("Expanded message: " + expanded_message + "\n")
 
     problem = f"""
-    Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+    Always say if you are not sure of some parts of the question. Answer the question in a full sentence. Keep your answer brief but informative.
     If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
 
     Question: "{expanded_message}"
@@ -142,7 +142,7 @@ def start_chat():
         new_question = askfor_userVoiceInput(ERROR_MSG)
         if (new_question == "user_timeout"):
             return new_question
-        new_message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. Only return the final question.
+        new_message = f"""expand the following question to add more relevant questions. think of the 5 most relevant supplementary questions, select the top 1 question and add it to the original question. The original question must be part of the final question. Only return the final question.
         \n
         Question: '{new_question}'
         """
@@ -151,7 +151,7 @@ def start_chat():
 
         expanded_message = ragproxyagent.last_message(critic)['content']
 
-        problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence.
+        problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence. Keep your answer brief but informative.
         If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
 
         Question: "{expanded_message}"
@@ -212,7 +212,7 @@ def askfor_userVoiceInput(question):
             print("Could not request results; {0}".format(e))
 
         except sr.UnknownValueError:
-            print("User is not speaking: " + (time.perf_counter() - start_userVoiceTime))
+            print("User is not speaking: " + str(time.perf_counter() - start_userVoiceTime))
             continue
 
     return "user_timeout"
