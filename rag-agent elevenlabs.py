@@ -9,6 +9,8 @@ import autogen
 import time
 import speech_recognition as sr
 from elevenlabs import generate, set_api_key, stream
+global user_start_time
+
 
 set_api_key("9ea1ee7db09a5fe4db9eabadedcbae24")
 
@@ -37,7 +39,7 @@ costly_config_list = autogen.config_list_from_json(
 LLM_CONFIG = {
     "cache_seed": 42,  # change the cache_seed for different trials
     "temperature": 0,
-    "config_list": costly_config_list, # Can be amended to either cheap_config_list or costly_config_list
+    "config_list": config_list, # Can be amended to either cheap_config_list or costly_config_list
     "timeout": 120, # Default was 120
     # "tools": tools_list, # TESTING: function calling and automated admin 
 }
@@ -111,7 +113,7 @@ def start_chat():
     
     # Runs chat with user
     user_question = askfor_userVoiceInput(WELCOME_MSG)
-    user_start_time = time.perf_counter()
+    print(user_question)
     if (user_question == "user_timeout"):
         return user_question
 
@@ -187,8 +189,10 @@ def SpeakText(inputText):
     stream(audio_stream)
 
 def askfor_userVoiceInput(question):
+    global user_start_time
     SpeakText(question)
     print("Start speaking!")
+
     start_userVoiceTime = time.perf_counter()
     while (True):
         if (time.perf_counter() - start_userVoiceTime > TIMEOUT_SECS):
@@ -206,6 +210,7 @@ def askfor_userVoiceInput(question):
                 # Use google to recognize audio
                 userVoiceInput = Recog.recognize_google(audio)
                 userVoiceInput = userVoiceInput.lower()
+                user_start_time = time.perf_counter()
                 return userVoiceInput
             
         except sr.RequestError as e:
