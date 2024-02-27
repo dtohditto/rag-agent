@@ -72,3 +72,28 @@ New Chat
 
 
 New Chat
+
+
+New Chat
+User question: how many questions are there in the maritime census
+Expanded message: How many questions are there in the Maritime Census, and what types of information are firms required to provide?
+ERROR_MSG
+
+New Chat
+User question: when is the survey due date
+Expanded message: When is the survey due date, and can I request an extension if my audited accounts are not ready by then?
+Final Answer: The survey due date is 25 September 2023. You can request an extension if your audited accounts are not ready by then.
+Response Time: 28.02222512500157s
+
+
+New Chat
+
+
+New Chat
+User question: what is cso
+Expanded message: What does CSO stand for and how is it relevant to my company's changed business activity?
+Final Answer: CSO in the context provided stands for Company Specific Officer. It is relevant to your company's changed business activity because you need to inform the MPA of the change, and a CSO will assist you with the survey that reflects your current business activity.
+Response Time: 13.609059208996769s
+
+
+New Chat

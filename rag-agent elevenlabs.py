@@ -3,6 +3,7 @@ from autogen import config_list_from_json
 from autogen.retrieve_utils import TEXT_FORMATS
 from autogen.agentchat.contrib.retrieve_assistant_agent import RetrieveAssistantAgent
 from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
+from autogen.agentchat.contrib.capabilities.teachability import Teachability
 import chromadb
 import os
 import autogen
@@ -11,10 +12,17 @@ import speech_recognition as sr
 from elevenlabs import generate, set_api_key, stream
 global user_start_time
 
-
-set_api_key("9ea1ee7db09a5fe4db9eabadedcbae24")
+# ran out of speaking quota so commenting out first
+set_api_key("588804e07c7f7e949e8daa0d63b15173")
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+teachability = Teachability(
+    verbosity=0,  # 0 for basic info, 1 to add memory operations, 2 for analyzer messages, 3 for memo lists.
+    reset_db=False, # Use True to force-reset the memo DB, and False to use an existing DB.
+    path_to_db_dir="./tmp/interactive/teachability_db",  # Can be any path, but teachable agents in a group chat require unique paths.
+    recall_threshold=1.5
+)
 
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
@@ -68,11 +76,17 @@ CODE_EXECUTION_CONFIG={
 Recog = sr.Recognizer()
 
 
-WELCOME_MSG = "Welcome to the Maritime Innovation Center! How may I assist you today?"
-GOODBYE_MSG = "Thank you for visiting the Maritime Innovation Center! We hope to see you again!"
+WELCOME_MSG = "Welcome to the Maritime Innovation Lab! How may I assist you today?"
+GOODBYE_MSG = "Thank you for visiting the Maritime Innovation Lab! We hope to see you again!"
 ERROR_MSG = "Sorry, I am unable to answer your question given the current context. Would you mind providing more context on your query?"
 FINAL_ERROR_MSG = "Sorry, I am unable to find an appropriate answer to your query. Please rephrase your query or ask another question. Thank you!"
 TIMEOUT_SECS = 30
+
+test_hallucinations = ["May I get a time extension please?",
+                  "Can you give me more information about Section H of the Maritime Census?",
+                  "Can I update my contact details?",
+                  "Why does MPA conduct the Maritime Census?",
+                  "Is my company's information kept confidential?"]
 
 test_questions = ["May I get a time extension please?",
                   "Can you give me more information about Section H of the Maritime Census?",
@@ -110,6 +124,9 @@ def start_chat():
     assistant.reset()
     ragproxyagent.reset()
     critic.reset()
+
+    #Adds teachability to agent
+    teachability.add_to_agent(ragproxyagent)
     
     # Runs chat with user
     user_question = askfor_userVoiceInput(WELCOME_MSG)
@@ -131,7 +148,7 @@ def start_chat():
 
     problem = f"""
     Always say if you are not sure of some parts of the question. Answer the question in a full sentence. Keep your answer brief but informative.
-    If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
+    If you can't answer the question, you should reply exactly: '{ERROR_MSG}'.
 
     Question: "{expanded_message}"
     """
@@ -154,7 +171,7 @@ def start_chat():
         expanded_message = ragproxyagent.last_message(critic)['content']
 
         problem = f"""Always say if you are not sure of some parts of the question. Answer the question in a full sentence. Keep your answer brief but informative.
-        If you can't answer the question with or without the current context, you should reply exactly '{ERROR_MSG}'.
+        If you can't answer the question, you should reply exactly: '{ERROR_MSG}'.
 
         Question: "{expanded_message}"
         """
