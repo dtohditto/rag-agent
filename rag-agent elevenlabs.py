@@ -13,16 +13,17 @@ from elevenlabs import generate, set_api_key, stream
 global user_start_time
 
 # ran out of speaking quota so commenting out first
+# set api key for eleven labs text to speech
 set_api_key("588804e07c7f7e949e8daa0d63b15173")
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-teachability = Teachability(
-    verbosity=0,  # 0 for basic info, 1 to add memory operations, 2 for analyzer messages, 3 for memo lists.
-    reset_db=False, # Use True to force-reset the memo DB, and False to use an existing DB.
-    path_to_db_dir="./tmp/interactive/teachability_db",  # Can be any path, but teachable agents in a group chat require unique paths.
-    recall_threshold=1.5
-)
+# teachability = Teachability(
+#     verbosity=0,  # 0 for basic info, 1 to add memory operations, 2 for analyzer messages, 3 for memo lists.
+#     reset_db=False, # Use True to force-reset the memo DB, and False to use an existing DB.
+#     path_to_db_dir="./tmp/interactive/teachability_db",  # Can be any path, but teachable agents in a group chat require unique paths.
+#     recall_threshold=1.5
+# )
 
 CONFIG_FILE_NAME = "OAI_CONFIG_LIST.json"
 config_list = config_list_from_json(env_or_file=CONFIG_FILE_NAME)
@@ -120,13 +121,13 @@ def start_chat():
         llm_config=LLM_CONFIG,
     )
 
-    #Reset all agents
+    #Reset all agents (not sure if can reset when using teachability)
     assistant.reset()
     ragproxyagent.reset()
     critic.reset()
 
     #Adds teachability to agent
-    teachability.add_to_agent(ragproxyagent)
+    # teachability.add_to_agent(ragproxyagent)
     
     # Runs chat with user
     user_question = askfor_userVoiceInput(WELCOME_MSG)
@@ -134,7 +135,7 @@ def start_chat():
     if (user_question == "user_timeout"):
         return user_question
 
-    message = f"""expand the following question to add more relevant questions. think of the most relevant supplementary question and combine it with the original question. Only return the combined question as a singular question.
+    message = f"""expand the following question to add more relevant questions. Think of the most relevant supplementary question and combine it with the original question. Only return the combined question as a singular question.
     \n
     Question: '{user_question}'
     """
