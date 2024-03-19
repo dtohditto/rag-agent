@@ -12,7 +12,6 @@ import speech_recognition as sr
 from elevenlabs import generate, set_api_key, stream
 global user_start_time
 
-# ran out of speaking quota so commenting out first
 # set api key for eleven labs text to speech
 set_api_key("588804e07c7f7e949e8daa0d63b15173")
 

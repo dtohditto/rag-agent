@@ -110,3 +110,26 @@ Response Time: 27.695490167010576s
 
 
 New Chat
+
+
+New Chat
+
+
+New Chat
+
+
+New Chat
+User question: is my company's information kept secret
+Expanded message: Is my company's information kept secret when participating in the Maritime Census, and what legal safeguards are in place to ensure confidentiality?
+Final Answer: Your company's information is kept confidential when participating in the Maritime Census, as the surveys are conducted under the Statistics Act 1973, which ensures responses are kept in confidence. Legal safeguards include the requirement for officers handling the survey information to sign undertakings under the Statistics Act and the Official Secrets Act, and all data are kept securely in MPA’s systems.
+Response Time: 28.78628483301145s
+
+
+New Chat
+User question: what is the maritime census
+Expanded message: What is the Maritime Census and why is it compulsory for selected firms to participate?
+Final Answer: The Maritime Census is conducted by the Maritime and Port Authority of Singapore (MPA) under the Statistics Act 1973 to collect statistics on the maritime industry's activities, technology, sustainability, and manpower developments. It is compulsory for selected firms to participate as their data ensures that the compiled industry statistics are representative, which assists in policymaking and the development of beneficial programs for the maritime community.
+Response Time: 12.925431624986231s
+
+
+New Chat
